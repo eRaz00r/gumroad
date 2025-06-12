@@ -565,6 +565,11 @@ module User::Stats
          .order(id: :desc)
   end
 
+  # Memoized version of products_for_creator_analytics to avoid re-running the query
+  def cached_products_for_creator_analytics
+    @_cached_products_for_creator_analytics ||= products_for_creator_analytics.load
+  end
+
   def first_sale_created_at_for_analytics
     union_sql = [:successful, :preorder_authorization_successful, :preorder_concluded_successfully].map do |state|
       "(" + sales.order(:created_at).select(:created_at).limit(1).where(purchase_state: state).to_sql + ")"

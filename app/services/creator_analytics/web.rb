@@ -118,7 +118,7 @@ class CreatorAnalytics::Web
     end
 
     def products
-      @_products ||= @user.products_for_creator_analytics.load
+      @user.cached_products_for_creator_analytics
     end
 
     def product_permalinks
