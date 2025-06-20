@@ -1,19 +1,12 @@
 # frozen_string_literal: true
 
 class GuatemalaBankAccount < BankAccount
+  include BankAccountValidations
+
   BANK_ACCOUNT_TYPE = "GT"
-
-  BANK_CODE_FORMAT_REGEX = /^[A-Za-z0-9]{8,11}$/
-  private_constant :BANK_CODE_FORMAT_REGEX
-
-  alias_attribute :bank_code, :bank_number
-
-  validate :validate_bank_code
-  validate :validate_account_number, if: -> { Rails.env.production? }
-
-  def routing_number
-    "#{bank_code}"
-  end
+  BANK_CODE_FORMAT_REGEX = /^([a-zA-Z0-9]){8,11}$/
+  ACCOUNT_NUMBER_FORMAT_REGEX = /^([a-zA-Z0-9]){1,34}$/
+  private_constant :BANK_CODE_FORMAT_REGEX, :ACCOUNT_NUMBER_FORMAT_REGEX
 
   def bank_account_type
     BANK_ACCOUNT_TYPE
@@ -26,27 +19,4 @@ class GuatemalaBankAccount < BankAccount
   def currency
     Currency::GTQ
   end
-
-  def account_number_visual
-    "******#{account_number_last_four}"
-  end
-
-  def to_hash
-    {
-      routing_number:,
-      account_number: account_number_visual,
-      bank_account_type:
-    }
-  end
-
-  private
-    def validate_bank_code
-      return if BANK_CODE_FORMAT_REGEX.match?(bank_code)
-      errors.add :base, "The bank code is invalid."
-    end
-
-    def validate_account_number
-      return if Ibandit::IBAN.new(account_number_decrypted).valid?
-      errors.add :base, "The account number is invalid."
-    end
 end

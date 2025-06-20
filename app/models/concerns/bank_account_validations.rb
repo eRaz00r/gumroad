@@ -9,14 +9,26 @@ module BankAccountValidations
     validate :validate_bank_code
     validate :validate_branch_code
     validate :validate_account_number, if: -> {
-      production_only_models = ["JordanBankAccount", "BahrainBankAccount", "TunisiaBankAccount", "OmanBankAccount"]
+      production_only_models = ["JordanBankAccount", "BahrainBankAccount", "TunisiaBankAccount", "OmanBankAccount",
+                               "NorwayBankAccount", "CzechRepublicBankAccount", "GuatemalaBankAccount", "NigerBankAccount",
+                               "CostaRicaBankAccount", "NorthMacedoniaBankAccount", "GibraltarBankAccount", "AngolaBankAccount",
+                               "AlbaniaBankAccount", "MoroccoBankAccount", "BulgariaBankAccount", "CoteDIvoireBankAccount",
+                               "HungaryBankAccount", "AzerbaijanBankAccount", "EuropeanBankAccount", "SwedenBankAccount",
+                               "BotswanaBankAccount", "PolandBankAccount", "RomaniaBankAccount", "SwissBankAccount",
+                               "LiechtensteinBankAccount", "BeninBankAccount", "BosniaAndHerzegovinaBankAccount",
+                               "UaeBankAccount", "MonacoBankAccount", "DenmarkBankAccount", "SerbiaBankAccount"]
       production_only_models.include?(self.class.name) ? Rails.env.production? : true
     }
   end
 
   def routing_number
     # Some models don't have routing numbers
-    no_routing_models = ["IsraelBankAccount", "TunisiaBankAccount"]
+    no_routing_models = ["IsraelBankAccount", "TunisiaBankAccount", "EuropeanBankAccount",
+                        "NorwayBankAccount", "CzechRepublicBankAccount", "NigerBankAccount",
+                        "CostaRicaBankAccount", "GibraltarBankAccount", "BulgariaBankAccount",
+                        "CoteDIvoireBankAccount", "HungaryBankAccount", "SwedenBankAccount",
+                        "PolandBankAccount", "RomaniaBankAccount", "LiechtensteinBankAccount",
+                        "BeninBankAccount", "UaeBankAccount", "MonacoBankAccount", "DenmarkBankAccount"]
     return nil if no_routing_models.include?(self.class.name)
 
     if respond_to?(:branch_code) && branch_code.present?
@@ -33,7 +45,9 @@ module BankAccountValidations
 
   def account_number_visual
     # Some countries show the country code before the account number
-    country_prefix_models = ["JordanBankAccount", "BahrainBankAccount", "TunisiaBankAccount"]
+    country_prefix_models = ["JordanBankAccount", "BahrainBankAccount", "TunisiaBankAccount",
+                             "AzerbaijanBankAccount", "EuropeanBankAccount", "NigeriaBankAccount",
+                             "IsraelBankAccount", "MauritiusBankAccount", "AngolaBankAccount"]
 
     if country_prefix_models.include?(self.class.name)
       "#{country}******#{account_number_last_four}"
@@ -74,7 +88,14 @@ module BankAccountValidations
       # Some models use IBAN validation instead of regex
       iban_countries = ["KuwaitBankAccount", "IsraelBankAccount", "PakistanBankAccount",
                        "EgyptBankAccount", "JordanBankAccount", "TurkeyBankAccount",
-                       "BahrainBankAccount", "TunisiaBankAccount", "SaudiArabiaBankAccount"]
+                       "BahrainBankAccount", "TunisiaBankAccount", "SaudiArabiaBankAccount",
+                       "NorwayBankAccount", "CzechRepublicBankAccount", "NigerBankAccount",
+                       "CostaRicaBankAccount", "NorthMacedoniaBankAccount", "GibraltarBankAccount",
+                       "BulgariaBankAccount", "CoteDIvoireBankAccount", "HungaryBankAccount",
+                       "AzerbaijanBankAccount", "EuropeanBankAccount", "SwedenBankAccount",
+                       "PolandBankAccount", "RomaniaBankAccount", "SwissBankAccount",
+                       "LiechtensteinBankAccount", "BeninBankAccount", "UaeBankAccount",
+                       "MonacoBankAccount", "DenmarkBankAccount", "SerbiaBankAccount", "MauritiusBankAccount"]
 
       if iban_countries.include?(self.class.name)
         return if Ibandit::IBAN.new(account_number_decrypted).valid?
