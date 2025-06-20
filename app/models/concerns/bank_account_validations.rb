@@ -48,7 +48,7 @@ module BankAccountValidations
     country_prefix_models = ["JordanBankAccount", "BahrainBankAccount", "TunisiaBankAccount",
                              "AzerbaijanBankAccount", "EuropeanBankAccount", "NigeriaBankAccount",
                              "IsraelBankAccount", "MauritiusBankAccount", "AngolaBankAccount",
-                             "NorthMacedoniaBankAccount"]
+                             "NorthMacedoniaBankAccount", "KazakhstanBankAccount", "AlbaniaBankAccount"]
 
     if country_prefix_models.include?(self.class.name)
       "#{country}******#{account_number_last_four}"
@@ -96,7 +96,7 @@ module BankAccountValidations
                        "AzerbaijanBankAccount", "EuropeanBankAccount", "SwedenBankAccount",
                        "PolandBankAccount", "RomaniaBankAccount", "SwissBankAccount",
                        "LiechtensteinBankAccount", "BeninBankAccount", "UaeBankAccount",
-                       "MonacoBankAccount", "DenmarkBankAccount", "SerbiaBankAccount", "MauritiusBankAccount"]
+                       "MonacoBankAccount", "DenmarkBankAccount", "SerbiaBankAccount", "MauritiusBankAccount", "KazakhstanBankAccount", "AlbaniaBankAccount"]
 
       if iban_countries.include?(self.class.name)
         return if Ibandit::IBAN.new(account_number_decrypted).valid?
