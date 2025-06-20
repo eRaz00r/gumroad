@@ -9,8 +9,8 @@ module BankAccountValidations
     validate :validate_bank_code
     validate :validate_branch_code
     validate :validate_account_number, if: -> {
-      production_only_iban = ["JordanBankAccount", "BahrainBankAccount", "TunisiaBankAccount"]
-      production_only_iban.include?(self.class.name) ? Rails.env.production? : true
+      production_only_models = ["JordanBankAccount", "BahrainBankAccount", "TunisiaBankAccount", "OmanBankAccount"]
+      production_only_models.include?(self.class.name) ? Rails.env.production? : true
     }
   end
 
@@ -21,7 +21,7 @@ module BankAccountValidations
 
     if respond_to?(:branch_code) && branch_code.present?
       case self.class.name
-      when "JapanBankAccount"
+      when "JapanBankAccount", "TrinidadAndTobagoBankAccount"
         "#{bank_code}#{branch_code}"
       else
         "#{bank_code}-#{branch_code}"
@@ -74,7 +74,7 @@ module BankAccountValidations
       # Some models use IBAN validation instead of regex
       iban_countries = ["KuwaitBankAccount", "IsraelBankAccount", "PakistanBankAccount",
                        "EgyptBankAccount", "JordanBankAccount", "TurkeyBankAccount",
-                       "BahrainBankAccount", "TunisiaBankAccount"]
+                       "BahrainBankAccount", "TunisiaBankAccount", "SaudiArabiaBankAccount"]
 
       if iban_countries.include?(self.class.name)
         return if Ibandit::IBAN.new(account_number_decrypted).valid?
