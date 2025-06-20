@@ -47,7 +47,8 @@ module BankAccountValidations
     # Some countries show the country code before the account number
     country_prefix_models = ["JordanBankAccount", "BahrainBankAccount", "TunisiaBankAccount",
                              "AzerbaijanBankAccount", "EuropeanBankAccount", "NigeriaBankAccount",
-                             "IsraelBankAccount", "MauritiusBankAccount", "AngolaBankAccount"]
+                             "IsraelBankAccount", "MauritiusBankAccount", "AngolaBankAccount",
+                             "NorthMacedoniaBankAccount"]
 
     if country_prefix_models.include?(self.class.name)
       "#{country}******#{account_number_last_four}"
@@ -90,7 +91,7 @@ module BankAccountValidations
                        "EgyptBankAccount", "JordanBankAccount", "TurkeyBankAccount",
                        "BahrainBankAccount", "TunisiaBankAccount", "SaudiArabiaBankAccount",
                        "NorwayBankAccount", "CzechRepublicBankAccount", "NigerBankAccount",
-                       "CostaRicaBankAccount", "NorthMacedoniaBankAccount", "GibraltarBankAccount",
+                       "CostaRicaBankAccount", "GibraltarBankAccount",
                        "BulgariaBankAccount", "CoteDIvoireBankAccount", "HungaryBankAccount",
                        "AzerbaijanBankAccount", "EuropeanBankAccount", "SwedenBankAccount",
                        "PolandBankAccount", "RomaniaBankAccount", "SwissBankAccount",
