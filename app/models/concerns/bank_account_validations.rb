@@ -8,14 +8,16 @@ module BankAccountValidations
 
     validate :validate_bank_code
     validate :validate_branch_code
-    validate :validate_account_number
+    validate :validate_account_number, if: -> {
+      production_only_iban = ["JordanBankAccount", "BahrainBankAccount", "TunisiaBankAccount"]
+      production_only_iban.include?(self.class.name) ? Rails.env.production? : true
+    }
   end
 
   def routing_number
-    # Israel bank account doesn't have a routing number
-    if self.class.name == "IsraelBankAccount"
-      return nil
-    end
+    # Some models don't have routing numbers
+    no_routing_models = ["IsraelBankAccount", "TunisiaBankAccount"]
+    return nil if no_routing_models.include?(self.class.name)
 
     if respond_to?(:branch_code) && branch_code.present?
       case self.class.name
@@ -30,15 +32,29 @@ module BankAccountValidations
   end
 
   def account_number_visual
-    "******#{account_number_last_four}"
+    # Some countries show the country code before the account number
+    country_prefix_models = ["JordanBankAccount", "BahrainBankAccount", "TunisiaBankAccount"]
+
+    if country_prefix_models.include?(self.class.name)
+      "#{country}******#{account_number_last_four}"
+    else
+      "******#{account_number_last_four}"
+    end
   end
 
   def to_hash
-    {
-      routing_number:,
+    # Some models don't have routing numbers
+    hash = {
       account_number: account_number_visual,
       bank_account_type:
     }
+
+    # Only add routing_number if it exists
+    if routing_number.present?
+      hash[:routing_number] = routing_number
+    end
+
+    hash
   end
 
   private
@@ -54,9 +70,13 @@ module BankAccountValidations
       errors.add :base, "The branch code is invalid."
     end
 
-        def validate_account_number
+                    def validate_account_number
       # Some models use IBAN validation instead of regex
-      if ["KuwaitBankAccount", "IsraelBankAccount"].include?(self.class.name)
+      iban_countries = ["KuwaitBankAccount", "IsraelBankAccount", "PakistanBankAccount",
+                       "EgyptBankAccount", "JordanBankAccount", "TurkeyBankAccount",
+                       "BahrainBankAccount", "TunisiaBankAccount"]
+
+      if iban_countries.include?(self.class.name)
         return if Ibandit::IBAN.new(account_number_decrypted).valid?
         errors.add :base, "The account number is invalid."
         return
