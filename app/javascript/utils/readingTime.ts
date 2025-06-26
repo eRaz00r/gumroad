@@ -28,16 +28,24 @@ const MIN_WORD_COUNT = 200;
  * ```
  */
 export const calculateReadingTime = (text: string): number => {
-  if (!text || text.trim().length === 0) return 0;
 
-  const plainText = text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-  const wordCount = plainText.split(/\s+/).filter(word => word.length > 0).length;
+  // Handle null, undefined, or non-string inputs
+  if (!text || typeof text !== 'string' || text.trim().length === 0) return 0;
 
-  // Return 0 for very short content (less than 50 words)
-  if (wordCount < MIN_WORD_COUNT) return 0;
+  try {
+       const plainText = text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+       const wordCount = plainText.split(/\s+/).filter(word => word.length > 0).length;
 
-  const minutes = Math.ceil(wordCount / WORDS_PER_MINUTE);
-  return Math.max(1, minutes);
+       // Return 0 for very short content (less than minimum word count)
+       if (wordCount < MIN_WORD_COUNT) return 0;
+
+       const minutes = Math.ceil(wordCount / WORDS_PER_MINUTE);
+       return Math.max(1, minutes);
+  } catch (error) {
+    // Return 0 if any error occurs during processing
+    console.warn('Error calculating reading time:', error);
+    return 0;
+  }
 };
 
 /**
