@@ -8,12 +8,14 @@ import { incrementPostViews } from "$app/data/view_event";
 import { CreatorProfile } from "$app/parsers/profile";
 import { register } from "$app/utils/serverComponentUtil";
 
+import { Icon } from "$app/components/Icons";
 import { LoadingSpinner } from "$app/components/LoadingSpinner";
 import { CommentsMetadataProvider, PostCommentsSection } from "$app/components/Post/PostCommentsSection";
 import { Layout } from "$app/components/Profile/Layout";
 import { useRichTextEditor } from "$app/components/RichTextEditor";
 import { useUserAgentInfo } from "$app/components/UserAgent";
 import { useRunOnce } from "$app/components/useRunOnce";
+import { calculateReadingTime, calculateReadingTimeFromEditor, formatReadingTime } from "$app/utils/readingTime";
 
 const dateFormatOptions: Intl.DateTimeFormatOptions = { month: "long", day: "numeric", year: "numeric" };
 export const formatPostDate = (date: string | null, locale: string): string =>
@@ -65,12 +67,39 @@ const PostPage = ({
     editable: false,
   });
   const publishedAtFormatted = formatPostDate(published_at, userAgentInfo.locale);
+  const readingTime = React.useMemo(() => {
+    // Try to get from editor first (more accurate)
+    if (pageLoaded && editor) {
+      const editorTime = calculateReadingTimeFromEditor(editor);
+      if (editorTime > 0) return editorTime;
+    }
+
+    // Fallback to raw message content
+    if (message) {
+      return calculateReadingTime(message);
+    }
+
+    return 0;
+  }, [pageLoaded, editor, message]);
 
   return (
     <Layout className="reader" creatorProfile={creator_profile}>
       <header>
         <h1>{subject}</h1>
-        <time>{publishedAtFormatted}</time>
+        <div style={{ display: "flex", gap: "var(--spacer-2)", alignItems: "center", flexWrap: "wrap" }}>
+          <time>{publishedAtFormatted}</time>
+          {readingTime >= 1 && (
+            <>
+              <span className="text-muted" style={{ fontSize: "0.875rem" }}>•</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                <Icon name="outline-clock" style={{ width: "0.875rem", height: "0.875rem", opacity: 0.7 }} />
+                <span className="text-muted" style={{ fontSize: "0.875rem" }}>
+                  {formatReadingTime(readingTime)}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
       </header>
       <article style={{ display: "grid", gap: "var(--spacer-6)" }}>
         {pageLoaded ? null : <LoadingSpinner width="2em" />}
