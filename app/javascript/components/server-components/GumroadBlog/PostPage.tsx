@@ -12,7 +12,7 @@ import { useRichTextEditor } from "$app/components/RichTextEditor";
 import { formatPostDate } from "$app/components/server-components/Profile/PostPage";
 import { useUserAgentInfo } from "$app/components/UserAgent";
 import { useRunOnce } from "$app/components/useRunOnce";
-import { calculateReadingTime, calculateReadingTimeFromEditor, formatReadingTime } from "$app/utils/readingTime";
+import { calculateReadingTime, formatReadingTime } from "$app/utils/readingTime";
 
 const BackToBlog = ({ className }: { className?: string }) => (
   <div className={cx("scoped-tailwind-preflight", className)}>
@@ -50,8 +50,15 @@ const PostPage = ({
   const readingTime = React.useMemo(() => {
     // Try to get from editor first (more accurate)
     if (pageLoaded && editor) {
-      const editorTime = calculateReadingTimeFromEditor(editor);
-      if (editorTime > 0) return editorTime;
+      try {
+        const editorText = editor.getText();
+        if (editorText && editorText.trim().length > 0) {
+          const editorTime = calculateReadingTime(editorText);
+          if (editorTime > 0) return editorTime;
+        }
+      } catch (error) {
+        console.warn('Failed to get text from editor:', error);
+      }
     }
 
     // Fallback to raw message content

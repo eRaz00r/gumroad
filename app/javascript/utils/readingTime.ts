@@ -57,29 +57,3 @@ export const formatReadingTime = (minutes: number): string => {
   if (minutes === 0) return '';
   return `${minutes} min read`;
 };
-
-/**
- * Calculates reading time from a rich text editor instance.
- * Safely extracts plain text content from the editor and calculates reading time.
- *
- * @param editor - Editor instance with a getText() method (e.g., Quill, Draft.js)
- * @returns Reading time in minutes, or 0 if editor is invalid or content is too short
- *
- * @example
- * ```typescript
- * const editor = new QuillEditor();
- * calculateReadingTimeFromEditor(editor); // Returns estimated minutes based on editor content
- * ```
- */
-export const calculateReadingTimeFromEditor = (editor: any): number => {
-  if (!editor) return 0;
-
-  try {
-    const textContent = editor.getText();
-    if (!textContent || textContent.trim().length === 0) return 0;
-    return calculateReadingTime(textContent);
-  } catch (error) {
-    console.warn('Failed to get text from editor:', error);
-    return 0;
-  }
-};
