@@ -54,7 +54,7 @@ const PostPage = ({
         const editorText = editor.getText();
         if (editorText && editorText.trim().length > 0) {
           const editorTime = calculateReadingTime(editorText);
-          if (editorTime > 0) return editorTime;
+          return editorTime;
         }
       } catch (error) {
         console.warn('Failed to get text from editor:', error);

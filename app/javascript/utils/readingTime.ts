@@ -12,7 +12,7 @@ const WORDS_PER_MINUTE = 200;
  * Minimum word count threshold below which reading time is not displayed.
  * Content shorter than this is considered too brief to warrant a reading time estimate.
  */
-const MIN_WORD_COUNT = 50;
+const MIN_WORD_COUNT = 200;
 
 /**
  * Calculates the estimated reading time for a given text content.
