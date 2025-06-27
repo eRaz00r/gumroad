@@ -1123,4 +1123,89 @@ const b = 2;</code></pre>
       expect(installment.message_snippet).to eq("a " * 98 + "a...")
     end
   end
+
+  context "reading time functionality" do
+    describe "#reading_time_minutes" do
+      it "returns 0 for blank message" do
+        installment = Installment.new(message: "")
+        expect(installment.reading_time_minutes).to eq(0)
+      end
+
+      it "returns 0 for nil message" do
+        installment = Installment.new(message: nil)
+        expect(installment.reading_time_minutes).to eq(0)
+      end
+
+      it "returns 0 for messages with only HTML tags" do
+        installment = Installment.new(message: "<p></p><div></div>")
+        expect(installment.reading_time_minutes).to eq(0)
+      end
+
+      it "calculates reading time for short text" do
+        # Short text should be less than 1 minute
+        installment = Installment.new(message: "<p>Hello world</p>")
+        expect(installment.reading_time_minutes).to eq(0)
+      end
+
+      it "calculates reading time for medium text" do
+        # Create text that should take about 1-2 minutes to read
+        text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 50
+        installment = Installment.new(message: "<p>#{text}</p>")
+        reading_time = installment.reading_time_minutes
+        expect(reading_time).to be > 0
+        expect(reading_time).to be < 10
+      end
+
+      it "strips HTML tags before calculating reading time" do
+        plain_text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 50
+        html_text = "<h1>Title</h1><p>#{plain_text}</p><strong>Bold text</strong>"
+        installment = Installment.new(message: html_text)
+
+        expect(installment.reading_time_minutes).to be > 0
+      end
+
+      it "handles complex HTML structure" do
+        html_message = <<~HTML
+          <h1>Title</h1>
+          <p>This is a paragraph with <strong>bold</strong> and <em>italic</em> text.</p>
+          <ul>
+            <li>First item</li>
+            <li>Second item</li>
+          </ul>
+          <blockquote>This is a quote.</blockquote>
+          <p>#{("Another paragraph with lots of text. " * 20)}</p>
+        HTML
+        installment = Installment.new(message: html_message)
+
+        expect(installment.reading_time_minutes).to be > 0
+      end
+    end
+
+    describe "#reading_time_text" do
+      it "returns nil for blank message" do
+        installment = Installment.new(message: "")
+        expect(installment.reading_time_text).to be_nil
+      end
+
+      it "returns nil for messages with reading time less than 1 minute" do
+        installment = Installment.new(message: "<p>Short text</p>")
+        expect(installment.reading_time_text).to be_nil
+      end
+
+      it "returns '1 min read' for 1 minute reading time" do
+        # Mock the reading_time_minutes method to return 1
+        installment = Installment.new(message: "<p>Some text</p>")
+        allow(installment).to receive(:reading_time_minutes).and_return(1)
+
+        expect(installment.reading_time_text).to eq("1 min read")
+      end
+
+      it "returns correct format for multiple minutes" do
+        installment = Installment.new(message: "<p>Some text</p>")
+        allow(installment).to receive(:reading_time_minutes).and_return(5)
+
+        expect(installment.reading_time_text).to eq("5 min read")
+      end
+    end
+  end
 end

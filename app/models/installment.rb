@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "custom_rouge_theme"
+require "readingtime"
 
 class Installment < ApplicationRecord
   has_paper_trail
@@ -825,6 +826,64 @@ class Installment < ApplicationRecord
     return [] unless tags.all? { |tag| tag.start_with?("#") }
 
     tags.map { normalize_tag(it) }.uniq
+  end
+
+  # Calculates the estimated reading time for the installment message in minutes
+  #
+  # This method strips HTML tags from the message, analyzes the text content,
+  # and returns the estimated reading time rounded to the nearest minute.
+  #
+  # @return [Integer] Reading time in minutes, or 0 if message is blank or invalid
+  #
+  # @example
+  #   installment.message = "<p>This is a short message</p>"
+  #   installment.reading_time_minutes #=> 0 (less than 1 minute)
+  #
+  #   installment.message = "<p>#{'Long text ' * 200}</p>"
+  #   installment.reading_time_minutes #=> 3
+  def reading_time_minutes
+    return 0 if message.blank?
+
+    # Strip HTML tags and normalize whitespace
+    text_content = strip_tags(message).squish
+    return 0 if text_content.blank?
+
+    # Get reading time analysis as raw array [hours, minutes, seconds]
+    reading_time_result = text_content.reading_time(format: :raw)
+    return 0 unless reading_time_result.is_a?(Array) && reading_time_result.length >= 3
+
+    # Extract time components and convert to total minutes
+    hours, minutes, seconds = reading_time_result
+    total_minutes = hours * 60 + minutes
+
+    # Round up if more than 30 seconds
+    total_minutes += 1 if seconds > 30
+
+    total_minutes
+  end
+
+  # Returns a human-readable reading time string for display purposes
+  #
+  # This method formats the reading time as "X min read" text, commonly used
+  # in blog posts and articles to give readers an estimate of time investment.
+  #
+  # @return [String, nil] Formatted reading time string, or nil if less than 1 minute or blank message
+  #
+  # @example
+  #   installment.reading_time_text #=> "5 min read"
+  #   installment.reading_time_text #=> "1 min read"
+  #   installment.reading_time_text #=> nil (for short content)
+  def reading_time_text
+    return nil if message.blank?
+
+    minutes = reading_time_minutes
+    return nil if minutes < 1
+
+    if minutes == 1
+      "1 min read"
+    else
+      "#{minutes} min read"
+    end
   end
 
   class InstallmentInvalid < StandardError

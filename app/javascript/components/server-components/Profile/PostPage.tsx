@@ -15,7 +15,6 @@ import { Layout } from "$app/components/Profile/Layout";
 import { useRichTextEditor } from "$app/components/RichTextEditor";
 import { useUserAgentInfo } from "$app/components/UserAgent";
 import { useRunOnce } from "$app/components/useRunOnce";
-import { calculateReadingTime, formatReadingTime } from "$app/utils/readingTime";
 
 const dateFormatOptions: Intl.DateTimeFormatOptions = { month: "long", day: "numeric", year: "numeric" };
 export const formatPostDate = (date: string | null, locale: string): string =>
@@ -41,6 +40,8 @@ type Props = {
   paginated_comments: PaginatedComments | null;
   comments_max_allowed_depth: number;
   creator_profile: CreatorProfile;
+  reading_time_minutes: number;
+  reading_time_text: string | null;
 };
 
 const PostPage = ({
@@ -56,6 +57,8 @@ const PostPage = ({
   paginated_comments,
   comments_max_allowed_depth,
   creator_profile,
+  reading_time_minutes,
+  reading_time_text,
 }: Props) => {
   const userAgentInfo = useUserAgentInfo();
   const [pageLoaded, setPageLoaded] = React.useState(false);
@@ -67,27 +70,6 @@ const PostPage = ({
     editable: false,
   });
   const publishedAtFormatted = formatPostDate(published_at, userAgentInfo.locale);
-  const readingTime = React.useMemo(() => {
-    // Try to get from editor first (more accurate)
-    if (pageLoaded && editor) {
-      try {
-        const editorText = editor.getText();
-        if (editorText && editorText.trim().length > 0) {
-          const editorTime = calculateReadingTime(editorText);
-          return editorTime;
-        }
-      } catch (error) {
-        console.warn('Failed to get text from editor:', error);
-      }
-    }
-
-    // Fallback to raw message content
-    if (message) {
-      return calculateReadingTime(message);
-    }
-
-    return 0;
-  }, [pageLoaded, editor, message]);
 
   return (
     <Layout className="reader" creatorProfile={creator_profile}>
@@ -95,13 +77,15 @@ const PostPage = ({
         <h1>{subject}</h1>
         <div style={{ display: "flex", gap: "var(--spacer-2)", alignItems: "center", flexWrap: "wrap" }}>
           <time>{publishedAtFormatted}</time>
-          {readingTime >= 1 && (
+          {reading_time_minutes >= 1 && (
             <>
-              <span className="text-muted" style={{ fontSize: "0.875rem" }}>•</span>
+              <span className="text-muted" style={{ fontSize: "0.875rem" }}>
+                •
+              </span>
               <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
                 <Icon name="outline-clock" style={{ width: "0.875rem", height: "0.875rem", opacity: 0.7 }} />
                 <span className="text-muted" style={{ fontSize: "0.875rem" }}>
-                  {formatReadingTime(readingTime)}
+                  {reading_time_text}
                 </span>
               </div>
             </>

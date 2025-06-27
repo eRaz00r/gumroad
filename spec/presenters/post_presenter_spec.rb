@@ -120,6 +120,8 @@ describe PostPresenter do
           }
         },
         comments_max_allowed_depth: 4,
+        reading_time_minutes: @product_post.reading_time_minutes,
+        reading_time_text: @product_post.reading_time_text,
       )
     end
 

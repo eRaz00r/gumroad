@@ -12,7 +12,6 @@ import { useRichTextEditor } from "$app/components/RichTextEditor";
 import { formatPostDate } from "$app/components/server-components/Profile/PostPage";
 import { useUserAgentInfo } from "$app/components/UserAgent";
 import { useRunOnce } from "$app/components/useRunOnce";
-import { calculateReadingTime, formatReadingTime } from "$app/utils/readingTime";
 
 const BackToBlog = ({ className }: { className?: string }) => (
   <div className={cx("scoped-tailwind-preflight", className)}>
@@ -29,12 +28,16 @@ const PostPage = ({
   published_at,
   message,
   call_to_action,
+  reading_time_minutes,
+  reading_time_text,
 }: {
   external_id: string;
   subject: string;
   published_at: string;
   message: string;
   call_to_action: { url: string; text: string } | null;
+  reading_time_minutes: number;
+  reading_time_text: string | null;
 }) => {
   const userAgentInfo = useUserAgentInfo();
   const [pageLoaded, setPageLoaded] = React.useState(false);
@@ -47,27 +50,6 @@ const PostPage = ({
     editable: false,
   });
   const publishedAtFormatted = formatPostDate(published_at, userAgentInfo.locale);
-  const readingTime = React.useMemo(() => {
-    // Try to get from editor first (more accurate)
-    if (pageLoaded && editor) {
-      try {
-        const editorText = editor.getText();
-        if (editorText && editorText.trim().length > 0) {
-          const editorTime = calculateReadingTime(editorText);
-          return editorTime;
-        }
-      } catch (error) {
-        console.warn('Failed to get text from editor:', error);
-      }
-    }
-
-    // Fallback to raw message content
-    if (message) {
-      return calculateReadingTime(message);
-    }
-
-    return 0;
-  }, [pageLoaded, editor, message]);
 
   return (
     <div className="container mx-auto px-8 py-16 sm:px-6 md:py-24 lg:px-8">
@@ -77,13 +59,13 @@ const PostPage = ({
           <h1 className="mb-4">{subject}</h1>
           <div className="flex gap-2 items-center flex-wrap">
             <time className="text-dark-gray">{publishedAtFormatted}</time>
-            {readingTime >= 1 && (
+            {reading_time_minutes >= 1 && (
               <>
                 <span className="text-gray-500 text-sm">•</span>
                 <div className="flex items-center gap-1">
                   <Icon name="outline-clock" className="text-gray-500" style={{ width: "0.875rem", height: "0.875rem" }} />
                   <span className="text-gray-500 text-sm">
-                    {formatReadingTime(readingTime)}
+                    {reading_time_text}
                   </span>
                 </div>
               </>

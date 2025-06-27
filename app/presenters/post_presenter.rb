@@ -30,6 +30,8 @@ class PostPresenter
       recent_posts:,
       paginated_comments:,
       comments_max_allowed_depth: Comment::MAX_ALLOWED_DEPTH,
+      reading_time_minutes: post.reading_time_minutes,
+      reading_time_text: post.reading_time_text,
     }
   end
 
