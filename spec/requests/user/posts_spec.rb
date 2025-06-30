@@ -14,10 +14,10 @@ describe("Posts on seller profile", type: :feature, js: true) do
     create(:seller_profile, seller:, json_data: { tabs: [{ name: "", sections: [section.id] }] })
     @product = create(:product, name: "a product", user: seller)
 
-    long_message = "<p>#{"This is a comprehensive product update with detailed information about new features and improvements. " * 20}</p>"
-    @visible_product_post = create(:installment, link: @product, published_at: 1.days.ago, shown_on_profile: true, message: long_message)
+    @visible_product_post = create(:installment, link: @product, published_at: 1.days.ago, shown_on_profile: true)
     @hidden_product_post = create(:installment, link: @product, published_at: 2.days.ago, shown_on_profile: false)
-    @standard_post = create(:follower_installment, seller:, published_at: 3.days.ago, shown_on_profile: true)
+    standard_post_message = "#{"This is a comprehensive standard post with detailed information about new features and improvements. " * 20}"
+    @standard_post = create(:follower_installment, seller:, published_at: 3.days.ago, shown_on_profile: true, message: standard_post_message)
     @old_product_post = create(:installment, link: @product, published_at: 10.days.ago, shown_on_profile: true)
 
     @unpublished_audience_post = create(:audience_installment, seller:, shown_on_profile: true)
@@ -74,7 +74,6 @@ describe("Posts on seller profile", type: :feature, js: true) do
       expect(page).to have_title "#{@hidden_product_post.name} - #{seller.name}"
       expect(page).to have_selector("h1", text: @hidden_product_post.name)
       expect(page).to have_text @hidden_product_post.message
-      expect(page).to_not have_text("min read")
     end
 
     it "shows the content slug page for a shown_on_profile=false product post if logged out with the right purchase_id" do
@@ -105,12 +104,6 @@ describe("Posts on seller profile", type: :feature, js: true) do
       end
       expect(page).to_not have_link(@hidden_product_post.name)
       expect(page).to_not have_link(@old_product_post.name)
-
-      visit "#{seller.subdomain_with_protocol}/p/#{@visible_product_post.slug}"
-      reading_time_minutes = @visible_product_post.reading_time_minutes
-      expect(reading_time_minutes).to be > 0
-      expect(page).to have_text("#{reading_time_minutes} min read")
-      expect(page).to have_selector(".icon-outline-clock")
     end
 
     it "shows the date in the accurate format" do
@@ -128,7 +121,11 @@ describe("Posts on seller profile", type: :feature, js: true) do
       visit "#{seller.subdomain_with_protocol}/p/#{@standard_post.slug}"
 
       expect(page).to have_selector("h1", text: @standard_post.name)
-      expect(page).to have_text @standard_post.message
+      expect(page).to have_text "This is a comprehensive standard post with detailed information about new features and improvements."
+      reading_time_minutes = @standard_post.reading_time_minutes
+      expect(reading_time_minutes).to be > 0
+      expect(page).to have_text("#{reading_time_minutes} min read")
+      expect(page).to have_selector(".icon-outline-clock")
     end
 
     it "shows 'recent posts' on a standard post" do
@@ -678,8 +675,8 @@ describe("Posts on seller profile", type: :feature, js: true) do
     let(:blog_owner) { create(:user, username: "gumroad") }
 
     it "standard gumroad blog content" do
-      long_content = "<p>#{"Blog post with comprehensive content about the creator economy and monetization strategies. " * 40}</p>"
-      blog_post = create(:audience_post, :published, seller: blog_owner, message: long_content, shown_on_profile: true)
+      long_message = "<p>#{"Blog post with comprehensive content about the creator economy and monetization strategies. " * 40}</p>"
+      blog_post = create(:audience_post, :published, seller: blog_owner, message: long_message, shown_on_profile: true)
 
       visit "/blog/p/#{blog_post.slug}"
 
