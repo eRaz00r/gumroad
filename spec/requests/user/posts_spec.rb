@@ -690,7 +690,6 @@ describe("Posts on seller profile", type: :feature, js: true) do
       expect(page).to have_selector(".icon-outline-clock")
 
       expect(page).to have_link("Back to Blog")
-
     end
   end
 end
