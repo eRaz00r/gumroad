@@ -45,7 +45,7 @@ Doorkeeper.configure do
   end
 
   authorization_code_expires_in 10.minutes
-  access_token_expires_in nil
+  access_token_expires_in 2.hours
 
   force_ssl_in_redirect_uri false
 

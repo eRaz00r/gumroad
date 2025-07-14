@@ -74,13 +74,13 @@ class AudienceMember < ApplicationRecord
         when "affiliate" then [:min_affiliate_created_at, :max_affiliate_created_at]
         else [:min_created_at, :max_created_at]
         end
-      created_at_relation = created_at_relation.where("#{max_created_at_column} > ?", params[:created_after]) if params[:created_after]
-      created_at_relation = created_at_relation.where("#{min_created_at_column} < ?", params[:created_before]) if params[:created_before]
+      created_at_relation = created_at_relation.where("#{connection.quote_column_name(max_created_at_column)} > ?", params[:created_after]) if params[:created_after]
+      created_at_relation = created_at_relation.where("#{connection.quote_column_name(min_created_at_column)} < ?", params[:created_before]) if params[:created_before]
       created_at_sql = created_at_relation.to_sql
     end
 
     if params[:bought_from]
-      country_relation = where(seller_id:).where("JSON_CONTAINS(details->'$.purchases[*].country', ?)", %("#{params[:bought_from]}"))
+      country_relation = where(seller_id:).where("JSON_CONTAINS(details->'$.purchases[*].country', ?)", connection.quote(params[:bought_from]))
       country_sql = country_relation.to_sql
     end
 

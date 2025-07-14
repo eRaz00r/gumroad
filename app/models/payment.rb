@@ -186,7 +186,12 @@ class Payment < ApplicationRecord
   def sync_with_payout_processor
     return unless NON_TERMINAL_STATES.include?(state)
 
-    sync_with_paypal if processor == PayoutProcessorType::PAYPAL
+    with_lock do
+      # Re-check state after acquiring lock to prevent race conditions
+      return unless NON_TERMINAL_STATES.include?(state)
+
+      sync_with_paypal if processor == PayoutProcessorType::PAYPAL
+    end
   end
 
   private
